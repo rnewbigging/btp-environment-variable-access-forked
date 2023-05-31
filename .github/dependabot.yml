@@ -4,8 +4,8 @@ updates:
     directory: "/"
     schedule:
       interval: daily
-      time: "14:03"
-      timezone: Etc/UCT
+      time: "14:25"
+      timezone: "Europe/Berlin"
 #    reviewers:
 #      - "Johannes-Schneider"
     open-pull-requests-limit: 10
