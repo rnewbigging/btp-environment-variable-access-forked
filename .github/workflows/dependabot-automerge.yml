@@ -11,7 +11,7 @@ jobs:
       github.event_name == 'pull_request' }}
     steps:
       - name: check ci build
-        id: check-ci
+        id: check_ci
         run: |
           # GET check run for ci-build
           check_run=$(curl -s \
@@ -25,7 +25,7 @@ jobs:
           echo"::set-output name=check_ci::$check_status"
 
       - name: check codeql scan
-        id: check-codeql
+        id: check_codeql
         run: |
           # GET check run for ci-build
           check_run=$(curl -s \
