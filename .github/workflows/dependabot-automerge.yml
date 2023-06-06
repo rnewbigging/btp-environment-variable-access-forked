@@ -11,7 +11,6 @@ jobs:
     steps:
       - name: wait for workflows
         run: |
-          # Get workflow
           workflow_runs=$(curl -s \
           -H "Authorization: Bearer ${{secrets.GITHUB_TOKEN}}" \
           "https://api.github.com/repos/${{github.repository}}/pulls/${{ github.event.pull_request.number }}/check-runs") \
@@ -28,9 +27,6 @@ jobs:
           # Wait for completion -> TODO Replace loop with better solution
           while [ "$in_progress" -gt 0 ]; do
             sleep 30
-            workflow_runs=$(curl -s \
-              -H "Authorization: Bearer ${{secrets.GITHUB_TOKEN}}" \
-              "https://api.github.com/repos/${{github.repository}}/pulls/${{ github.event.pull_request.number }}/check-runs") \
             in_progress=$(echo "workflow_runs" | jq -r 'map(select(.status == "in_progress")) | length')
           done
   checks:
