@@ -4,11 +4,10 @@ on:
   pull_request:
     branches: [ main ]
 
-if: ${{ github.actor == 'dependabot[bot]' && github.event_name == 'pull_request' }}
-
 jobs:
   wait-for-workflows:
     runs-on: ubuntu-latest
+    if: ${{ github.actor == 'dependabot[bot]' && github.event_name == 'pull_request' }}
     steps:
       - name: wait for workflows
         id: wait_workflows
@@ -38,6 +37,7 @@ jobs:
   checks:
     runs-on: ubuntu-latest
     needs: wait_workflows
+    if: ${{ github.actor == 'dependabot[bot]' && github.event_name == 'pull_request' }}
     steps:
       - name: check ci build
         id: check_ci
@@ -76,7 +76,8 @@ jobs:
   review-pr:
     runs-on: ubuntu-latest
     needs: checks
-    if: ${{ needs.checks.outputs.check_ci == 'success' }}
+    if: ${{ github.actor == 'dependabot[bot]' && github.event_name == 'pull_request' &&
+            needs.checks.outputs.check_ci == 'success' }}
 #      &&
 #      needs.checks.outputs.check_codeql == 'success'}}
     permissions:
