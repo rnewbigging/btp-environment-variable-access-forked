@@ -20,7 +20,7 @@ jobs:
           echo "$workflow_runs"
 
           # Check if in progress
-          in_progress = $(echo "workflow_runs" | jq -r 'map(select(.status == "in_progress")) | length')
+          in_progress=$(echo "workflow_runs" | jq -r 'map(select(.status == "in_progress")) | length')
           
           # Debug Check
           echo "$in_progress"
@@ -31,7 +31,7 @@ jobs:
             workflow_runs=$(curl -s \
               -H "Authorization: Bearer ${{secrets.GITHUB_TOKEN}}" \
               "https://api.github.com/repos/${{github.repository}}/pulls/${{ github.event.pull_request.number }}/check-runs") \
-            in_progress = $(echo "workflow_runs" | jq -r 'map(select(.status == "in_progress")) | length')
+            in_progress=$(echo "workflow_runs" | jq -r 'map(select(.status == "in_progress")) | length')
           done
   checks:
     runs-on: ubuntu-latest
