@@ -4,11 +4,40 @@ on:
   pull_request:
     branches: [ main ]
 
+if: ${{ github.actor == 'dependabot[bot]' && github.event_name == 'pull_request' }}
+
 jobs:
+  wait-for-workflows:
+    runs-on: ubuntu-latest
+    steps:
+      - name: wait for workflows
+        id: wait_workflows
+        run: |
+          # Get workflow
+          workflow_runs=$(curl -s \
+          -H "Authorization: Bearer ${{secrets.GITHUB_TOKEN}}" \
+          "https://api.github.com/repos/${{github.repository}}/pulls/${{ github.event.pull_request.number }}/check-runs") \
+
+          # Debug Check
+          echo "$workflow_runs"
+
+          # Check if in progress
+          in_progress = $(echo "workflow_runs" | jq -r 'map(select(.status == "in_progress")) | length')
+          
+          # Debug Check
+          echo "$in_progress"
+          
+          # Wait for completion -> TODO Replace loop with better solution
+          while [ "$in_progress" -gt 0 ]; do
+            sleep 30
+            workflow_runs=$(curl -s \
+              -H "Authorization: Bearer ${{secrets.GITHUB_TOKEN}}" \
+              "https://api.github.com/repos/${{github.repository}}/pulls/${{ github.event.pull_request.number }}/check-runs") \
+            in_progress = $(echo "workflow_runs" | jq -r 'map(select(.status == "in_progress")) | length')
+          done
   checks:
     runs-on: ubuntu-latest
-    if: ${{ github.actor == 'dependabot[bot]' &&
-      github.event_name == 'pull_request' }}
+    needs: wait_workflows
     steps:
       - name: check ci build
         id: check_ci
@@ -28,7 +57,7 @@ jobs:
           echo "$check_status"
 
           # Set output of step to status
-          echo "::set-output name=check_ci::$check_status"
+          echo "check_ci=check_status" >> $GITHUB_OUTPUT
 #
 #      - name: check codeql scan
 #        id: check_codeql
@@ -47,9 +76,7 @@ jobs:
   review-pr:
     runs-on: ubuntu-latest
     needs: checks
-    if: ${{ github.actor == 'dependabot[bot]' && 
-      github.event_name == 'pull_request' &&
-      needs.checks.outputs.check_ci == 'success' }}
+    if: ${{ needs.checks.outputs.check_ci == 'success' }}
 #      &&
 #      needs.checks.outputs.check_codeql == 'success'}}
     permissions:
