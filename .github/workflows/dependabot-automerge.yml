@@ -19,12 +19,18 @@ jobs:
         with:
           github-token: '${{ secrets.GITHUB_TOKEN }}'
       - name: approve
+        if: ${{steps.dependabot-metadata.outputs.update-type == 'version-update:semver-patch' || 
+               steps.dependabot-metadata.outputs.update-type == 'version-update:semver-minor'}}
         run: gh pr review --approve "$PR_URL"
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      - name: comment major updates
+        if : ${{steps.dependabot-metadata.outputs.update-type == 'version-update:semver-major' }}
+        run: |
+          gh pr comment $PR_URL --body "PR **not approved** because it includes a major update of a dependency"
+          gh pr edit $PR_URL --add-label "please review"
       - name: enable auto-merge for dependabot PRs
-        # Condition: Only patches, TODO
         run: gh pr merge --auto --squash "$PR_URL"
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
