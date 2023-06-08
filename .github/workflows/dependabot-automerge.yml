@@ -18,13 +18,6 @@ jobs:
         uses: dependabot/fetch-metadata@v1.3.1
         with:
           github-token: '${{ secrets.GITHUB_TOKEN }}'
-      - name: approve
-        if: ${{steps.metadata.outputs.update-type == 'version-update:semver-patch' || 
-               steps.metadata.outputs.update-type == 'version-update:semver-minor'}}
-        run: gh pr review --approve "$PR_URL"
-        env:
-          PR_URL: ${{github.event.pull_request.html_url}}
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
       - name: comment major updates
         if : ${{steps.metadata.outputs.update-type == 'version-update:semver-major' }}
         run: |
@@ -33,8 +26,12 @@ jobs:
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-      - name: enable auto-merge for dependabot PRs
-        run: gh pr merge --auto --squash "$PR_URL"
+      - name: approve and merge
+        if: ${{steps.metadata.outputs.update-type == 'version-update:semver-patch' || 
+               steps.metadata.outputs.update-type == 'version-update:semver-minor'}}
+        run: |
+          gh pr review --approve "$PR_URL"
+          gh pr merge --auto --squash "$PR_URL"
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
